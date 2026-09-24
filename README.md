@@ -249,6 +249,12 @@ Sanitised hourly datasets ship under
 
 A machine-readable citation will be maintained in [`CITATION.cff`](CITATION.cff).
 
+## Funding
+
+Development of `thermal-rc-toolbox` was supported by the
+[RESONANCE](https://www.resonance-project.eu/) and
+[INDEPENDENT](https://independent-energyproject.eu/) projects.
+
 ## License
 
 [Apache License 2.0](LICENSE) — see `LICENSE` and `NOTICE` for the full text
