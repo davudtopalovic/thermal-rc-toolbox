@@ -1,0 +1,30 @@
+rct-train \
+  --building-config AIBF \
+  --data-path data_train.joblib \
+  --identification-config identification_config.json \
+  --results-directory-path results \
+  --seed 23 \
+  --save-figures \
+  --save-optimizer \
+  --stage full
+
+rct-train \
+  --building-config VUBC \
+  --data-path data_train.joblib \
+  --identification-config identification_config.json \
+  --results-directory-path results \
+  --seed 23 \
+  --save-figures \
+  --save-optimizer \
+  --stage full
+
+
+rct-train \
+  --building-config P8EE \
+  --data-path data_train.joblib \
+  --identification-config identification_config.json \
+  --results-directory-path results \
+  --seed 23 \
+  --save-figures \
+  --save-optimizer \
+  --stage full

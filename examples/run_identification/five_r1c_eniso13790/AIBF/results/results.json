@@ -1,0 +1,222 @@
+{
+    "setup": {
+        "building_config": {
+            "hems_id": "AIBF",
+            "max_HP_power": 12000,
+            "JPD": {
+                "A_f": 117.6,
+                "n_floors": 2
+            },
+            "exact_A_f_bounds": null
+        },
+        "seed": 23,
+        "identification_config": {
+            "model_config": {
+                "model_type": "5R1C_heat_demand",
+                "init_config": {
+                    "method": "regime_aware",
+                    "variant": "last"
+                }
+            },
+            "optimization_config": {
+                "objective_function": "MAE",
+                "std_weight": 0.0,
+                "pop_size": 100,
+                "n_gen": 150
+            },
+            "selection_config": {
+                "criteria": "val error",
+                "select_R_star": true,
+                "threshold_config": {
+                    "type": "idx",
+                    "x": 12000
+                }
+            },
+            "clustering_config": {
+                "min_samples_ratio": 0.1,
+                "cl_eval_metric": "MAE",
+                "cl_eval_criteria": "val error"
+            }
+        }
+    },
+    "results": {
+        "best_candidate": {
+            "params": {
+                "A_f": 117.67398,
+                "H_em": 343.63809,
+                "H_w": 107.20463,
+                "H_ve": 13.61815,
+                "c_f": 259478.38748,
+                "phi_int_f": 3.22789,
+                "k_sol": 2.15124
+            },
+            "train_error": 521.13335,
+            "validation_error": 522.11272,
+            "criteria": 522.11272
+        },
+        "clustering-results": {
+            "0": {
+                "count": 5743,
+                "mean": {
+                    "A_f": 117.61,
+                    "H_em": 343.2,
+                    "H_w": 107.27,
+                    "H_ve": 15.21,
+                    "c_f": 259653.59,
+                    "phi_int_f": 3.02,
+                    "k_sol": 2.15
+                },
+                "std": {
+                    "A_f": 0.02,
+                    "H_em": 3.82,
+                    "H_w": 3.15,
+                    "H_ve": 0.6,
+                    "c_f": 223.65,
+                    "phi_int_f": 0.06,
+                    "k_sol": 0.0
+                },
+                "min": {
+                    "A_f": 117.6,
+                    "H_em": 285.89,
+                    "H_w": 104.09,
+                    "H_ve": 13.62,
+                    "c_f": 252677.37,
+                    "phi_int_f": 3.0,
+                    "k_sol": 2.15
+                },
+                "max": {
+                    "A_f": 117.98,
+                    "H_em": 346.84,
+                    "H_w": 154.4,
+                    "H_ve": 17.71,
+                    "c_f": 259847.24,
+                    "phi_int_f": 3.58,
+                    "k_sol": 2.15
+                },
+                "p05": {
+                    "A_f": 117.6,
+                    "H_em": 342.05,
+                    "H_w": 106.43,
+                    "H_ve": 14.72,
+                    "c_f": 259469.33,
+                    "phi_int_f": 3.0,
+                    "k_sol": 2.15
+                },
+                "p50": {
+                    "A_f": 117.6,
+                    "H_em": 343.64,
+                    "H_w": 107.25,
+                    "H_ve": 15.22,
+                    "c_f": 259783.57,
+                    "phi_int_f": 3.0,
+                    "k_sol": 2.15
+                },
+                "p95": {
+                    "A_f": 117.67,
+                    "H_em": 343.64,
+                    "H_w": 107.35,
+                    "H_ve": 16.61,
+                    "c_f": 259821.61,
+                    "phi_int_f": 3.18,
+                    "k_sol": 2.15
+                },
+                "best_candidate": {
+                    "params": {
+                        "A_f": 117.67398,
+                        "H_em": 343.63809,
+                        "H_w": 107.20463,
+                        "H_ve": 13.61815,
+                        "c_f": 259478.38748,
+                        "phi_int_f": 3.22789,
+                        "k_sol": 2.15124
+                    },
+                    "criteria": 522.11272,
+                    "validation_error": 522.11272,
+                    "train_error": 521.13335,
+                    "cl_eval_score": 522.11
+                }
+            },
+            "1": {
+                "count": 5562,
+                "mean": {
+                    "A_f": 118.45,
+                    "H_em": 421.19,
+                    "H_w": 57.29,
+                    "H_ve": 15.01,
+                    "c_f": 258809.49,
+                    "phi_int_f": 4.16,
+                    "k_sol": 2.19
+                },
+                "std": {
+                    "A_f": 1.8,
+                    "H_em": 7.9,
+                    "H_w": 2.25,
+                    "H_ve": 2.18,
+                    "c_f": 1871.19,
+                    "phi_int_f": 0.7,
+                    "k_sol": 0.07
+                },
+                "min": {
+                    "A_f": 117.6,
+                    "H_em": 403.94,
+                    "H_w": 44.8,
+                    "H_ve": 8.7,
+                    "c_f": 244010.04,
+                    "phi_int_f": 3.0,
+                    "k_sol": 2.15
+                },
+                "max": {
+                    "A_f": 129.03,
+                    "H_em": 439.78,
+                    "H_w": 67.4,
+                    "H_ve": 23.25,
+                    "c_f": 259980.99,
+                    "phi_int_f": 6.28,
+                    "k_sol": 2.48
+                },
+                "p05": {
+                    "A_f": 117.61,
+                    "H_em": 405.83,
+                    "H_w": 49.4,
+                    "H_ve": 10.49,
+                    "c_f": 252937.29,
+                    "phi_int_f": 3.08,
+                    "k_sol": 2.15
+                },
+                "p50": {
+                    "A_f": 117.71,
+                    "H_em": 418.23,
+                    "H_w": 57.93,
+                    "H_ve": 16.21,
+                    "c_f": 259476.65,
+                    "phi_int_f": 4.2,
+                    "k_sol": 2.15
+                },
+                "p95": {
+                    "A_f": 123.34,
+                    "H_em": 430.95,
+                    "H_w": 58.22,
+                    "H_ve": 17.02,
+                    "c_f": 259612.17,
+                    "phi_int_f": 5.33,
+                    "k_sol": 2.31
+                },
+                "best_candidate": {
+                    "params": {
+                        "A_f": 117.6303,
+                        "H_em": 414.57519,
+                        "H_w": 49.38373,
+                        "H_ve": 17.00122,
+                        "c_f": 259218.77166,
+                        "phi_int_f": 3.24232,
+                        "k_sol": 2.15095
+                    },
+                    "criteria": 530.65857,
+                    "validation_error": 530.65857,
+                    "train_error": 521.7421,
+                    "cl_eval_score": 530.66
+                }
+            }
+        }
+    }
+}

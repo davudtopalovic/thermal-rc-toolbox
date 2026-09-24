@@ -1,0 +1,36 @@
+{
+    "model_config": {
+        "model_type": "6R3C_temperature",
+        "init_config": {
+            "method": "dynamic"
+        },
+        "output_states": [
+            [
+                0,
+                "T_i"
+            ],
+            [
+                1,
+                "T_h"
+            ]
+        ]
+    },
+    "optimization_config": {
+        "objective_function": "__main__:weighted_temp_objective",
+        "pop_size": 100,
+        "n_gen": 100
+    },
+    "selection_config": {
+        "criteria": "train error",
+        "select_R_star": true,
+        "threshold_config": {
+            "type": "percentage",
+            "x": 0.05
+        }
+    },
+    "clustering_config": {
+        "min_samples_ratio": 0.1,
+        "cl_eval_metric": "RMSE",
+        "cl_eval_criteria": "train error"
+    }
+}

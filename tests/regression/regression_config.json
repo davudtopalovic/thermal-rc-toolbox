@@ -1,0 +1,27 @@
+{
+    "model_config": {
+        "model_type": "5R1C_heat_demand",
+        "init_config": {
+            "method": "regime_aware",
+            "variant": "last"
+        }
+    },
+    "optimization_config": {
+        "objective_function": "MAE",
+        "std_weight": 0.0,
+        "pop_size": 20,
+        "n_gen": 10
+    },
+    "selection_config": {
+        "criteria": "train error",
+        "threshold_config": {
+            "type": "idx",
+            "x": 50
+        }
+    },
+    "clustering_config": {
+        "min_samples_ratio": 0.1,
+        "cl_eval_metric": "MAE",
+        "cl_eval_criteria": "train error"
+    }
+}

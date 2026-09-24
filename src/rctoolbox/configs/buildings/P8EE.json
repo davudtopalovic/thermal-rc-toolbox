@@ -1,0 +1,8 @@
+{"hems_id": "P8EE",
+  "max_HP_power": 11000,
+  "JPD": {
+    "A_f": 88,
+    "n_floors": 2
+  },
+  "exact_A_f_bounds": null
+}

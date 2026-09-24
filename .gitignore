@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+uv.lock
+.ipynb_checkpoints/
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Pipeline artifacts (regeneratable — can be very large)
+optimizer.pkl
+**/run.log
+
+# Logo working files (only the one used in README is tracked)
+logo/*
+!logo/logo2_full_p256.png

@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+message: "If you use thermal-rc-toolbox in your research, please cite this software (see below)."
+title: thermal-rc-toolbox
+abstract: >
+  A Python toolbox for calibration and simulation of RC thermal models for
+  building indoor dynamics and heat pump demand, with an actuator-aware 5R1C
+  model (EN ISO 13790:2008), a genetic-algorithm identification pipeline,
+  and HDBSCAN clustering of the final candidate pool.
+type: software
+license: Apache-2.0
+version: 0.1.0
+# TODO: replace with the Zenodo DOI minted for the cited release once published.
+# doi: 10.5281/zenodo.XXXXXXX
+repository-code: "https://github.com/davudtopalovic/thermal-rc-toolbox"
+url: "https://github.com/davudtopalovic/thermal-rc-toolbox"
+authors:
+  - family-names: Topalovic
+    given-names: Davud
+    # TODO: add ORCID id when available
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+keywords:
+  - thermal modeling
+  - RC model
+  - 5R1C
+  - building energy
+  - heat pump
+  - system identification
+  - genetic algorithm
+  - EN ISO 13790
+
+# TODO: once the companion paper is accepted, uncomment and complete the
+# preferred-citation block below so that citation tools (GitHub, Zenodo,
+# Citation File Format consumers) point users at the paper, not the software.
+#
+# preferred-citation:
+#   type: article
+#   title: "Data-Efficient Actuator-Aware Thermal Modeling of Heat Pump Systems Using a 5R1C Framework for Scalable Control Applications"
+#   authors:
+#     - family-names: Topalovic
+#       given-names: Davud
+#   year: 2026
+#   journal: "TODO: journal name"
+#   doi: "TODO: paper DOI"

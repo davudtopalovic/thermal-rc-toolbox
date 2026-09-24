@@ -1,0 +1,72 @@
+[project]
+name = "thermal-rc-toolbox"
+version = "0.1.0"
+description = "A toolbox for calibration and simulation of RC thermal models for building indoor dynamics and heat demand."
+authors = [
+    { name = "Davud Topalovic" }
+]
+requires-python = ">=3.10"
+license = "Apache-2.0"
+readme = "README.md"
+keywords = [
+    "thermal-modeling",
+    "RC-model",
+    "5R1C",
+    "building-energy",
+    "heat-pump",
+    "genetic-algorithm",
+    "system-identification",
+    "EN-ISO-13790",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+    "seaborn>=0.13.2",
+    "scikit-learn>=1.7.2",
+    "pymoo==0.6.1.3",
+    "hdbscan>=0.8.42",
+    "numba>=0.65.1",
+    "joblib",
+    "xgboost>=3.2.0",
+]
+
+[project.urls]
+Repository = "https://github.com/davudtopalovic/thermal-rc-toolbox"
+Issues     = "https://github.com/davudtopalovic/thermal-rc-toolbox/issues"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+rct-train = "rctoolbox.cli.train:main"
+
+[tool.setuptools.package-data]
+rctoolbox = [
+    "configs/**/*.json",
+    "utils/resources/**/*"
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "jupyterlab>=4.0",
+    "ipykernel>=6.0",
+    "nbconvert>=7.17.1",
+    "grip>=4.6.2",
+]
