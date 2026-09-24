@@ -14,7 +14,7 @@ class _OneDecimalSci(ScalarFormatter):
 
 
 param_title_fontsize = 20
-DPI = 300
+DPI = 150
 
 def plot_free_param_evolution(optimizer, show=True, fig_path=None, fig_config=None):
 
