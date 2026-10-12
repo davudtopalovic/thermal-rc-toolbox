@@ -29,6 +29,11 @@ from rctoolbox.models.rc.three_r3c.model import ThreeR3C
 from rctoolbox.models.rc.three_r3c.parameter_space import ParameterSpace_3R3C
 from rctoolbox.models.rc.three_r3c import problem as problem_3r3c
 
+# --- 1R1C
+from rctoolbox.models.rc.one_r1c.model import OneR1C
+from rctoolbox.models.rc.one_r1c.parameter_space import ParameterSpace_1R1C
+from rctoolbox.models.rc.one_r1c import problem as problem_1r1c
+
 # --- 2R2C
 from rctoolbox.models.rc.two_r2c.model import TwoR2C
 from rctoolbox.models.rc.two_r2c.parameter_space import ParameterSpace_2R2C
@@ -51,6 +56,13 @@ def build_5r1c_model(building_config: dict, model_config: dict):
     model = FiveR1C_ENISO13790()
     model.set_heat_power_range([0, building_config["max_HP_power"]])
     model.set_initialization(init_config=model_config["init_config"])
+    return model
+
+def build_1r1c_temp_model(building_config: dict, model_config: dict):
+    model = OneR1C()
+    if "init_config" in model_config:
+        model.set_initialization(init_config=model_config["init_config"])
+    model.set_integration(model_config.get("integration"))
     return model
 
 def build_2r2c_temp_model(building_config: dict, model_config: dict):
@@ -98,6 +110,11 @@ MODEL_REGISTRY: dict[str, ModelPlugin] = {
         model_factory=build_5r1c_model,
         parameter_space_cls=RCParameterSpace,
         problem_cls=problem_5r1c.HeatDemandProblem,
+    ),
+    "1R1C_temperature": ModelPlugin(
+        model_factory=build_1r1c_temp_model,
+        parameter_space_cls=ParameterSpace_1R1C,
+        problem_cls=problem_1r1c.TemperatureProblem,
     ),
     "2R2C_temperature": ModelPlugin(
         model_factory=build_2r2c_temp_model,
