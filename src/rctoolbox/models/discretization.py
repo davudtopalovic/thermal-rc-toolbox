@@ -41,3 +41,48 @@ def zoh_discretize(A, B, dt):
     M[:n, n:] = B
     Md = expm(M * dt)
     return Md[:n, :n], Md[:n, n:]
+
+
+import numpy as np
+from scipy.linalg import expm, solve
+
+def zoh_discretize_explicit(A, B, dt):
+    """
+    ZOH discretization using the explicit formula:
+
+        Ad = expm(A * dt)
+        Bd = A^{-1} (Ad - I) B
+
+    This requires A to be invertible or at least well-conditioned.
+
+    Parameters
+    ----------
+    A : array_like, shape (n, n)
+        Continuous-time state matrix.
+    B : array_like, shape (n, m)
+        Continuous-time input matrix.
+    dt : float
+        Sampling time.
+
+    Returns
+    -------
+    Ad : ndarray, shape (n, n)
+        Discrete-time state matrix.
+    Bd : ndarray, shape (n, m)
+        Discrete-time input matrix.
+    """
+
+    A = np.asarray(A, dtype=float)
+    B = np.asarray(B, dtype=float)
+
+    n = A.shape[0]
+
+    Ad = expm(A * dt)
+
+    I = np.eye(n)
+
+    # Avoid np.linalg.inv(A) explicitly.
+    # This solves A X = (Ad - I) B for X.
+    Bd = solve(A, (Ad - I) @ B)
+
+    return Ad, Bd
