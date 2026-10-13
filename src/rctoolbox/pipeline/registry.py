@@ -49,6 +49,21 @@ from rctoolbox.models.rc.five_r4c_im.model import FiveR4CInternalMass
 from rctoolbox.models.rc.five_r4c_im.parameter_space import ParameterSpace_5R4C_IM
 from rctoolbox.models.rc.five_r4c_im import problem as problem_5r4c_im
 
+# --- freezer models (configurations of freezer_models.network.FreezerNetwork)
+import importlib as _importlib
+from rctoolbox.models.rc.freezer_models._problem import FreezerTemperatureProblem
+
+FREEZER_PACKAGES = {
+    "fz_1R1C_temperature":            ("fz_1r1c", "Freezer1R1C"),
+    "fz_2R2C_im_temperature":         ("fz_2r2c_im", "Freezer2R2C_IM"),
+    "fz_3R3C_im_ev_temperature":      ("fz_3r3c_im_ev", "Freezer3R3C_IM_EV"),
+    "fz_3R3C_im_ev_ta_temperature":   ("fz_3r3c_im_ev_ta", "Freezer3R3C_IM_EV_TA"),
+    "fz_3R3C_im_ev_out_temperature":  ("fz_3r3c_im_ev_out", "Freezer3R3C_IM_EV_OUT"),
+    "fz_3R3C_im_ev_cop_temperature":  ("fz_3r3c_im_ev_cop", "Freezer3R3C_IM_EV_COP"),
+    "fz_1R1C_evin_temperature":       ("fz_1r1c_evin", "Freezer1R1C_EVIN"),
+    "fz_2R2C_im_evin_temperature":    ("fz_2r2c_im_evin", "Freezer2R2C_IM_EVIN"),
+}
+
 # --- 2R2C
 from rctoolbox.models.rc.two_r2c.model import TwoR2C
 from rctoolbox.models.rc.two_r2c.parameter_space import ParameterSpace_2R2C
@@ -100,6 +115,26 @@ def build_5r4c_im_temp_model(building_config: dict, model_config: dict):
         model.set_initialization(init_config=model_config["init_config"])
     model.set_integration(model_config.get("integration"))
     return model
+
+def _freezer_factory(model_cls):
+    def build(building_config: dict, model_config: dict):
+        model = model_cls()
+        if "init_config" in model_config:
+            model.set_initialization(init_config=model_config["init_config"])
+        model.set_integration(model_config.get("integration", "zoh"))
+        return model
+    return build
+
+
+def _freezer_plugins():
+    plugins = {}
+    for key, (pkg, cls_name) in FREEZER_PACKAGES.items():
+        base = f"rctoolbox.models.rc.freezer_models.{pkg}"
+        model_cls = getattr(_importlib.import_module(f"{base}.model"), cls_name)
+        ps_cls = getattr(_importlib.import_module(f"{base}.parameter_space"), f"ParameterSpace_{cls_name}")
+        plugins[key] = (model_cls, ps_cls)
+    return plugins
+
 
 def build_2r2c_temp_model(building_config: dict, model_config: dict):
     model = TwoR2C()
@@ -210,6 +245,14 @@ MODEL_REGISTRY: dict[str, ModelPlugin] = {
     #     problem_cls=problem_6r2c.HeatDemandProblem,
     # )
 }
+
+for _key, (_cls, _ps) in _freezer_plugins().items():
+    MODEL_REGISTRY[_key] = ModelPlugin(
+        model_factory=_freezer_factory(_cls),
+        parameter_space_cls=_ps,
+        problem_cls=FreezerTemperatureProblem,
+    )
+
 
 def get_plugin(model_type: str) -> ModelPlugin:
     try:
