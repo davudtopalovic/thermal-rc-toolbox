@@ -34,6 +34,21 @@ from rctoolbox.models.rc.one_r1c.model import OneR1C
 from rctoolbox.models.rc.one_r1c.parameter_space import ParameterSpace_1R1C
 from rctoolbox.models.rc.one_r1c import problem as problem_1r1c
 
+# --- 2R2C with internal mass (freezer / cold store)
+from rctoolbox.models.rc.two_r2c_im.model import TwoR2CInternalMass
+from rctoolbox.models.rc.two_r2c_im.parameter_space import ParameterSpace_2R2C_IM
+from rctoolbox.models.rc.two_r2c_im import problem as problem_2r2c_im
+
+# --- 3R2C with internal mass and outdoor link (freezer / cold store)
+from rctoolbox.models.rc.three_r2c_im_out.model import ThreeR2CInternalMassOut
+from rctoolbox.models.rc.three_r2c_im_out.parameter_space import ParameterSpace_3R2C_IM_OUT
+from rctoolbox.models.rc.three_r2c_im_out import problem as problem_3r2c_im_out
+
+# --- 5R4C with two envelope nodes and internal mass (freezer / cold store)
+from rctoolbox.models.rc.five_r4c_im.model import FiveR4CInternalMass
+from rctoolbox.models.rc.five_r4c_im.parameter_space import ParameterSpace_5R4C_IM
+from rctoolbox.models.rc.five_r4c_im import problem as problem_5r4c_im
+
 # --- 2R2C
 from rctoolbox.models.rc.two_r2c.model import TwoR2C
 from rctoolbox.models.rc.two_r2c.parameter_space import ParameterSpace_2R2C
@@ -60,6 +75,27 @@ def build_5r1c_model(building_config: dict, model_config: dict):
 
 def build_1r1c_temp_model(building_config: dict, model_config: dict):
     model = OneR1C()
+    if "init_config" in model_config:
+        model.set_initialization(init_config=model_config["init_config"])
+    model.set_integration(model_config.get("integration"))
+    return model
+
+def build_2r2c_im_temp_model(building_config: dict, model_config: dict):
+    model = TwoR2CInternalMass()
+    if "init_config" in model_config:
+        model.set_initialization(init_config=model_config["init_config"])
+    model.set_integration(model_config.get("integration"))
+    return model
+
+def build_3r2c_im_out_temp_model(building_config: dict, model_config: dict):
+    model = ThreeR2CInternalMassOut()
+    if "init_config" in model_config:
+        model.set_initialization(init_config=model_config["init_config"])
+    model.set_integration(model_config.get("integration"))
+    return model
+
+def build_5r4c_im_temp_model(building_config: dict, model_config: dict):
+    model = FiveR4CInternalMass()
     if "init_config" in model_config:
         model.set_initialization(init_config=model_config["init_config"])
     model.set_integration(model_config.get("integration"))
@@ -115,6 +151,21 @@ MODEL_REGISTRY: dict[str, ModelPlugin] = {
         model_factory=build_1r1c_temp_model,
         parameter_space_cls=ParameterSpace_1R1C,
         problem_cls=problem_1r1c.TemperatureProblem,
+    ),
+    "2R2C_im_temperature": ModelPlugin(
+        model_factory=build_2r2c_im_temp_model,
+        parameter_space_cls=ParameterSpace_2R2C_IM,
+        problem_cls=problem_2r2c_im.TemperatureProblem,
+    ),
+    "3R2C_im_out_temperature": ModelPlugin(
+        model_factory=build_3r2c_im_out_temp_model,
+        parameter_space_cls=ParameterSpace_3R2C_IM_OUT,
+        problem_cls=problem_3r2c_im_out.TemperatureProblem,
+    ),
+    "5R4C_im_temperature": ModelPlugin(
+        model_factory=build_5r4c_im_temp_model,
+        parameter_space_cls=ParameterSpace_5R4C_IM,
+        problem_cls=problem_5r4c_im.TemperatureProblem,
     ),
     "2R2C_temperature": ModelPlugin(
         model_factory=build_2r2c_temp_model,
