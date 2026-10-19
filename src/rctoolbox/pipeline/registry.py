@@ -49,6 +49,11 @@ from rctoolbox.models.rc.five_r4c_im.model import FiveR4CInternalMass
 from rctoolbox.models.rc.five_r4c_im.parameter_space import ParameterSpace_5R4C_IM
 from rctoolbox.models.rc.five_r4c_im import problem as problem_5r4c_im
 
+# --- 2R2C with internal mass, driven by the measured evaporator temperature (freezer, standalone)
+from rctoolbox.models.rc.freezer_models.two_r2c_im_evin.model import TwoR2CInternalMassEvIn
+from rctoolbox.models.rc.freezer_models.two_r2c_im_evin.parameter_space import ParameterSpace_2R2C_IM_EVIN
+from rctoolbox.models.rc.freezer_models.two_r2c_im_evin import problem as problem_2r2c_im_evin
+
 # --- freezer models (configurations of freezer_models.network.FreezerNetwork)
 import importlib as _importlib
 from rctoolbox.models.rc.freezer_models._problem import FreezerTemperatureProblem
@@ -111,6 +116,13 @@ def build_3r2c_im_out_temp_model(building_config: dict, model_config: dict):
 
 def build_5r4c_im_temp_model(building_config: dict, model_config: dict):
     model = FiveR4CInternalMass()
+    if "init_config" in model_config:
+        model.set_initialization(init_config=model_config["init_config"])
+    model.set_integration(model_config.get("integration"))
+    return model
+
+def build_2r2c_im_evin_temp_model(building_config: dict, model_config: dict):
+    model = TwoR2CInternalMassEvIn()
     if "init_config" in model_config:
         model.set_initialization(init_config=model_config["init_config"])
     model.set_integration(model_config.get("integration"))
@@ -201,6 +213,11 @@ MODEL_REGISTRY: dict[str, ModelPlugin] = {
         model_factory=build_5r4c_im_temp_model,
         parameter_space_cls=ParameterSpace_5R4C_IM,
         problem_cls=problem_5r4c_im.TemperatureProblem,
+    ),
+    "2R2C_im_evin_temperature": ModelPlugin(
+        model_factory=build_2r2c_im_evin_temp_model,
+        parameter_space_cls=ParameterSpace_2R2C_IM_EVIN,
+        problem_cls=problem_2r2c_im_evin.TemperatureProblem,
     ),
     "2R2C_temperature": ModelPlugin(
         model_factory=build_2r2c_temp_model,
