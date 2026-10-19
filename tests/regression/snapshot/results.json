@@ -39,6 +39,10 @@
         }
     },
     "results": {
+        "optimization": {
+            "n_gen_run": 10,
+            "stop_reason": "reached n_gen = 10"
+        },
         "best_candidate": {
             "params": {
                 "A_f": 197.46138,

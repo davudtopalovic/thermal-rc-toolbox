@@ -148,6 +148,27 @@ either way the value used is written into `results.json`. The 6R3C VUBC
 example weights the indoor-air and heating-circuit errors this way
 ([`examples/run_identification/six_r3c_eniso13790/VUBC/objectives.py`](examples/run_identification/six_r3c_eniso13790/VUBC/objectives.py)).
 
+#### Early stopping
+
+By default the GA runs for exactly `n_gen` generations. With
+`early_stopping` it stops once the best fitness has improved by less than
+`tol` over the last `patience` generations; `n_gen` is then the upper limit:
+
+```json
+"optimization_config": {
+    "objective_function": "RMSE",
+    "pop_size": 100,
+    "n_gen": 300,
+    "early_stopping": {"patience": 20, "tol": 1e-3, "min_gen": 20}
+}
+```
+
+`tol` is in the units of the objective (`"relative": true` makes it a
+fraction of the best fitness); `min_gen` is the earliest generation at which
+the run may stop. The number of generations run and the reason for stopping
+are logged and written to `results.json` under `results.optimization`
+(`rctoolbox/identification/termination.py`).
+
 #### Pipeline stages
 
 `--stage N` or `--stage N-M` selects a contiguous range of stages with
