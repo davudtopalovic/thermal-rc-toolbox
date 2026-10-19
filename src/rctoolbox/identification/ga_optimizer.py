@@ -13,6 +13,8 @@ from pymoo.operators.mutation.pm import PM
 from pymoo.optimize import minimize
 from pymoo.termination import get_termination
 
+from rctoolbox.identification.termination import FitnessPlateauTermination
+
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
@@ -77,14 +79,27 @@ class GAOptimizer:
         #     self.parameter_space, "bldg_phys_param_bounds", None
         # )
 
-    def set_optimisation_parameters(self, pop_size, n_gen):
+    def set_optimisation_parameters(self, pop_size, n_gen, early_stopping=None):
+        """``n_gen`` is the number of generations, or the upper limit when
+        ``early_stopping`` (dict, see ``rctoolbox.identification.termination``)
+        is given."""
         self.pop_size, self.n_gen = pop_size, n_gen
+        self.early_stopping = early_stopping
 
     def run_optimization(self, seed=42):
         algorithm = GA(pop_size=self.pop_size, eliminate_duplicates=True)
         # algorithm = GA(pop_size=self.pop_size, eliminate_duplicates=True, crossover=SBX(prob=0.9, eta=15), mutation=PM(prob=1/self.n_free_params, eta=20))
-        termination = get_termination("n_gen", self.n_gen)
+        early_stopping = getattr(self, "early_stopping", None)
+        if early_stopping:
+            termination = FitnessPlateauTermination.from_config(self.n_gen, early_stopping)
+        else:
+            termination = get_termination("n_gen", self.n_gen)
         self.result = minimize(self.problem, algorithm, termination, seed=seed, save_history=True, verbose=True)
+
+        # minimize() works on a copy of the termination: read the outcome from the algorithm
+        self.n_gen_run = len(self.result.history)
+        used = self.result.algorithm.termination
+        self.stop_reason = getattr(used, "stop_reason", None) or f"reached n_gen = {self.n_gen}"
 
     def save_results(self, path):
         with open(path, "wb") as f:
@@ -98,6 +113,7 @@ class GAOptimizer:
         R = []
         if N is None:
             N = self.n_gen
+        N = min(N, len(self.result.history))   # shorter history after an early stop
         for gen_idx, entry in enumerate(self.result.history[-N:]):
             generation_number = len(self.result.history) - N + gen_idx + 1
             X_gen = entry.pop.get("X")
@@ -130,6 +146,7 @@ class GAOptimizer:
         R = []
         if N is None:
             N = self.n_gen
+        N = min(N, len(self.result.history))   # shorter history after an early stop
         for gen_idx, entry in enumerate(self.result.history[-N:]):
             generation_number = len(self.result.history) - N + gen_idx + 1
             X_gen = entry.pop.get("X")

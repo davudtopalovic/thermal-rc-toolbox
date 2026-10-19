@@ -159,9 +159,13 @@ def run_pipeline(args, problem_kwargs=None):
     pop_size = optimization_config["pop_size"]
     n_gen = optimization_config["n_gen"]
 
-    logger.info(f"GA parameters → pop_size: {pop_size}, n_gen: {n_gen}")
+    early_stopping = optimization_config.get("early_stopping")
 
-    optimizer.set_optimisation_parameters(pop_size=pop_size, n_gen=n_gen)
+    logger.info(f"GA parameters → pop_size: {pop_size}, n_gen: {n_gen}")
+    if early_stopping:
+        logger.info(f"Early stopping → {early_stopping} (n_gen is the upper limit)")
+
+    optimizer.set_optimisation_parameters(pop_size=pop_size, n_gen=n_gen, early_stopping=early_stopping)
     optimizer.set_model_and_problem(model, problem)
 
     # ---------------------------
@@ -195,7 +199,7 @@ def run_pipeline(args, problem_kwargs=None):
         logger.info("========== STAGE 1: OPTIMIZE ==========")
         logger.info("Running optimization...")
         optimizer.run_optimization(seed=args.seed)
-        logger.info("Optimization finished")
+        logger.info(f"Optimization finished after {optimizer.n_gen_run} generations: {optimizer.stop_reason}")
 
 
         if args.save_figures:
@@ -388,6 +392,10 @@ def run_pipeline(args, problem_kwargs=None):
                 "identification_config": config
             },
             "results": {
+                "optimization": {
+                    "n_gen_run": getattr(optimizer, "n_gen_run", None),
+                    "stop_reason": getattr(optimizer, "stop_reason", None),
+                },
                 "best_candidate": optimizer.best_candidate,
                 "clustering-results": getattr(optimizer, "cluster_summaries", None)
             }
