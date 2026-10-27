@@ -19,25 +19,35 @@ authors:
     # TODO: add ORCID id when available
     # orcid: "https://orcid.org/0000-0000-0000-0000"
 keywords:
-  - thermal modeling
-  - RC model
-  - 5R1C
-  - building energy
   - heat pump
+  - gray-box modeling
+  - 5R1C EN ISO 13790
   - system identification
-  - genetic algorithm
-  - EN ISO 13790
+  - data-efficient modeling
+  - demand response
+  - supervisory control
+  - Model Predictive Control
 
-# TODO: once the companion paper is accepted, uncomment and complete the
-# preferred-citation block below so that citation tools (GitHub, Zenodo,
-# Citation File Format consumers) point users at the paper, not the software.
-#
-# preferred-citation:
-#   type: article
-#   title: "Data-Efficient Actuator-Aware Thermal Modeling of Heat Pump Systems Using a 5R1C Framework for Scalable Control Applications"
-#   authors:
-#     - family-names: Topalovic
-#       given-names: Davud
-#   year: 2026
-#   journal: "TODO: journal name"
-#   doi: "TODO: paper DOI"
+preferred-citation:
+  type: article
+  status: preprint
+  title: "Data-Efficient Control-Oriented Gray-Box Framework for Setpoint-to-Thermal-Power Modeling of Residential Heat Pumps"
+  authors:
+    - family-names: Topalović
+      given-names: Davud
+    - family-names: Gabrijelčič
+      given-names: Dušan
+  year: 2026
+  publisher:
+    name: SSRN
+  doi: "10.2139/ssrn.7536923"
+  url: "https://ssrn.com/abstract=7536923"
+  keywords:
+    - heat pump
+    - gray-box modeling
+    - 5R1C EN ISO 13790
+    - system identification
+    - data-efficient modeling
+    - demand response
+    - supervisory control
+    - Model Predictive Control

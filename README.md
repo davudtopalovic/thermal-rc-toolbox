@@ -68,7 +68,7 @@ You now have an editable install of `rctoolbox` plus the dev tools
 uv run jupyter lab examples/         # open the tutorial notebooks
 uv run pytest                        # run the test suite
 uv run rct-train --help              # CLI help
-``
+```
 
 ## Quick start
 
@@ -265,8 +265,24 @@ Sanitised hourly datasets ship under
 
 ## Citation
 
-> TODO: Bibliographic entry will be added here once the paper is accepted
-> and a Zenodo DOI is minted for the corresponding release.
+If you use `thermal-rc-toolbox` in your research, please cite the
+accompanying preprint:
+
+> Topalović, D., & Gabrijelčič, D. (2026). *Data-Efficient Control-Oriented Gray-Box
+> Framework for Setpoint-to-Thermal-Power Modeling of Residential Heat Pumps.*
+> Preprint, SSRN. https://doi.org/10.2139/ssrn.7536923
+
+```bibtex
+@misc{topalovic2026dataefficient,
+  author       = {Topalovi{\'c}, Davud and Gabrijel{\v{c}}i{\v{c}}, Du{\v{s}}an},
+  title        = {Data-Efficient Control-Oriented Gray-Box Framework for
+                  Setpoint-to-Thermal-Power Modeling of Residential Heat Pumps},
+  year         = {2026},
+  howpublished = {SSRN preprint},
+  doi          = {10.2139/ssrn.7536923},
+  url          = {https://ssrn.com/abstract=7536923}
+}
+```
 
 A machine-readable citation will be maintained in [`CITATION.cff`](CITATION.cff).
 
