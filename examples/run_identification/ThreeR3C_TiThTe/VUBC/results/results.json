@@ -1,0 +1,263 @@
+{
+    "setup": {
+        "building_config": {},
+        "seed": 23,
+        "identification_config": {
+            "model_config": {
+                "model_type": "3R3C_temperature",
+                "init_config": {
+                    "method": "dynamic",
+                    "lag_h": 24
+                },
+                "output_states": [
+                    [
+                        0,
+                        "T_i"
+                    ],
+                    [
+                        1,
+                        "T_h"
+                    ]
+                ]
+            },
+            "optimization_config": {
+                "objective_function": "objectives.py:weighted_temp_objective",
+                "pop_size": 100,
+                "n_gen": 100
+            },
+            "selection_config": {
+                "criteria": "train error",
+                "select_R_star": true,
+                "threshold_config": {
+                    "type": "percentage",
+                    "x": 0.05
+                }
+            },
+            "clustering_config": {
+                "min_samples_ratio": 0.1,
+                "cl_eval_metric": "RMSE",
+                "cl_eval_criteria": "train error"
+            }
+        },
+        "model_name": "ThreeR3C_TiThTe",
+        "model_source": null
+    },
+    "results": {
+        "optimization": {
+            "n_gen_run": 100,
+            "stop_reason": "reached n_gen = 100"
+        },
+        "best_candidate": {
+            "params": {
+                "R_ih": 0.00143,
+                "R_ie": 0.00128,
+                "R_ea": 0.0921,
+                "R_ia": 0.00387,
+                "C_i": 157047216.29379,
+                "C_h": 6771255.952,
+                "C_e": 8004759879.29653,
+                "k_sol_i": 2.53627,
+                "k_sol_e": 7.64606
+            },
+            "train_error": 0.17207,
+            "validation_error": NaN,
+            "criteria": 0.17207
+        },
+        "clustering-results": {
+            "0": {
+                "count": 1304,
+                "mean": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "R_ia": 0.01,
+                    "C_i": 198014178.41,
+                    "C_h": 6839682.33,
+                    "C_e": 9286754557.41,
+                    "k_sol_i": 3.77,
+                    "k_sol_e": 1.72
+                },
+                "std": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "R_ia": 0.0,
+                    "C_i": 10903112.76,
+                    "C_h": 40849.03,
+                    "C_e": 181906364.42,
+                    "k_sol_i": 0.41,
+                    "k_sol_e": 1.25
+                },
+                "min": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "R_ia": 0.0,
+                    "C_i": 167900939.26,
+                    "C_h": 6711585.13,
+                    "C_e": 8597341434.57,
+                    "k_sol_i": 2.53,
+                    "k_sol_e": 0.03
+                },
+                "max": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.03,
+                    "R_ia": 0.01,
+                    "C_i": 244834724.58,
+                    "C_h": 7107287.1,
+                    "C_e": 9989893619.63,
+                    "k_sol_i": 5.0,
+                    "k_sol_e": 6.52
+                },
+                "p05": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "R_ia": 0.01,
+                    "C_i": 176233829.3,
+                    "C_h": 6772658.74,
+                    "C_e": 9099983700.35,
+                    "k_sol_i": 2.98,
+                    "k_sol_e": 0.5
+                },
+                "p50": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "R_ia": 0.01,
+                    "C_i": 203777956.76,
+                    "C_h": 6851737.23,
+                    "C_e": 9230669908.53,
+                    "k_sol_i": 3.79,
+                    "k_sol_e": 1.35
+                },
+                "p95": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.01,
+                    "R_ia": 0.01,
+                    "C_i": 211327316.34,
+                    "C_h": 6864433.62,
+                    "C_e": 9657701208.58,
+                    "k_sol_i": 4.2,
+                    "k_sol_e": 4.76
+                },
+                "best_candidate": {
+                    "params": {
+                        "R_ih": 0.00143,
+                        "R_ie": 0.00098,
+                        "R_ea": 0.00214,
+                        "R_ia": 0.00406,
+                        "C_i": 185553231.49654,
+                        "C_h": 6772646.36397,
+                        "C_e": 9222482620.45679,
+                        "k_sol_i": 3.35299,
+                        "k_sol_e": 1.23603
+                    },
+                    "criteria": 0.17258,
+                    "validation_error": NaN,
+                    "train_error": 0.17258,
+                    "cl_eval_score": 0.55
+                }
+            },
+            "1": {
+                "count": 1036,
+                "mean": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.06,
+                    "R_ia": 0.0,
+                    "C_i": 174245129.66,
+                    "C_h": 6786255.61,
+                    "C_e": 9153039548.8,
+                    "k_sol_i": 3.03,
+                    "k_sol_e": 6.88
+                },
+                "std": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.04,
+                    "R_ia": 0.0,
+                    "C_i": 11793348.05,
+                    "C_h": 52379.43,
+                    "C_e": 154888999.88,
+                    "k_sol_i": 0.35,
+                    "k_sol_e": 1.94
+                },
+                "min": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "R_ia": 0.0,
+                    "C_i": 156045640.22,
+                    "C_h": 6304065.93,
+                    "C_e": 8745068042.95,
+                    "k_sol_i": 2.56,
+                    "k_sol_e": 1.3
+                },
+                "max": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.1,
+                    "R_ia": 0.0,
+                    "C_i": 204762436.03,
+                    "C_h": 6864289.01,
+                    "C_e": 9638710041.02,
+                    "k_sol_i": 3.74,
+                    "k_sol_e": 11.44
+                },
+                "p05": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "R_ia": 0.0,
+                    "C_i": 157014216.68,
+                    "C_h": 6725089.5,
+                    "C_e": 8961211107.9,
+                    "k_sol_i": 2.65,
+                    "k_sol_e": 1.49
+                },
+                "p50": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.09,
+                    "R_ia": 0.0,
+                    "C_i": 173309712.66,
+                    "C_h": 6771412.92,
+                    "C_e": 9217726119.64,
+                    "k_sol_i": 3.14,
+                    "k_sol_e": 7.11
+                },
+                "p95": {
+                    "R_ih": 0.0,
+                    "R_ie": 0.0,
+                    "R_ea": 0.1,
+                    "R_ia": 0.0,
+                    "C_i": 189035005.86,
+                    "C_h": 6857516.73,
+                    "C_e": 9412690232.28,
+                    "k_sol_i": 3.55,
+                    "k_sol_e": 9.98
+                },
+                "best_candidate": {
+                    "params": {
+                        "R_ih": 0.00143,
+                        "R_ie": 0.00125,
+                        "R_ea": 0.09275,
+                        "R_ia": 0.00387,
+                        "C_i": 158061872.09288,
+                        "C_h": 6770392.01121,
+                        "C_e": 9386516564.03463,
+                        "k_sol_i": 2.64579,
+                        "k_sol_e": 7.69885
+                    },
+                    "criteria": 0.17208,
+                    "validation_error": NaN,
+                    "train_error": 0.17208,
+                    "cl_eval_score": 0.55
+                }
+            }
+        }
+    }
+}

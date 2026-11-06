@@ -18,9 +18,14 @@ model uses the standard's two-probe interpolation (0 and 10 W/m2 * A_f).
 
 Free parameters: A_f, H_em, H_w, H_ve, phi_int_f, k_sol, c_f.
 
-Initialization note: the ``dynamic`` and ``regime_aware`` methods replace the
-whole state, T_i included, with the lag-window simulation (legacy behaviour
-kept for reproducibility of the published 5R1C results).
+Initialization: the model builds its starting state from the measured T_i
+(``seed_state``: T_m = T_i - 2, T_s = T_i - 1, the conventional offsets),
+at the forecast start (``T_i_0``) and at the lag-window start; the method
+then replaces the hidden states. ``init_config["lag_h"]`` uses only the last
+``lag_h`` hours of the lag window (see ``RCBaseModel.prepare_init_data``).
+The ``dynamic`` and ``regime_aware`` methods replace the whole state, T_i
+included, with the lag-window simulation (legacy behaviour kept for
+reproducibility of the published 5R1C results).
 """
 import numpy as np
 
@@ -30,6 +35,8 @@ from rctoolbox.models.rc.five_r1c_eniso13790.numba_core import forecast_heat_dem
 
 class FiveR1C_ENISO13790(RCBaseModel):
     STATE_NAMES = ("T_m", "T_s", "T_i")
+    SEED_SIGNALS = ("T_i",)   # seed_state builds the starting state from the measured T_i
+    PARAM_NAMES = ("A_f", "H_em", "H_w", "H_ve", "phi_int_f", "k_sol", "c_f")
     HIDDEN_STATE_IDX = None   # dynamic init overwrites every column (see module docstring)
 
     def set_params(self, params_dict):
@@ -229,6 +236,13 @@ class FiveR1C_ENISO13790(RCBaseModel):
             self.k_sol,
             self.heat_power_range[1]
         )
+
+    # ------------------------------------------------------- initialization
+    def seed_state(self, T_i) -> np.ndarray:
+        """Starting state [T_m, T_s, T_i] (B, 3) from the measured T_i (B,):
+        T_m = T_i - 2, T_s = T_i - 1 (placeholders for the hidden states)."""
+        T_i = np.asarray(T_i, dtype=np.float64)
+        return np.stack([T_i - 2, T_i - 1, T_i], axis=1)
 
     # ------------------------------------------------- steady-state inversion
     def calc_Ts_Tm(self, T_i, T_a, Phi_sol, Phi_HC):

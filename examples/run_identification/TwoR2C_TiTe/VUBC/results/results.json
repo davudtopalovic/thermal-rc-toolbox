@@ -1,0 +1,208 @@
+{
+    "setup": {
+        "building_config": {
+            "hems_id": "VUBC",
+            "max_HP_power": 12000,
+            "geometry": {
+                "A_f": 154.2,
+                "n_floors": 2
+            },
+            "exact_A_f_bounds": null
+        },
+        "seed": 23,
+        "identification_config": {
+            "model_config": {
+                "model_type": "2R2C_temperature",
+                "init_config": {
+                    "method": "dynamic",
+                    "lag_h": 24
+                },
+                "free_param_bounds": {
+                    "R_ea": [
+                        3e-05,
+                        0.01774500637111553
+                    ],
+                    "C_i": [
+                        407088.0,
+                        1000000000.0
+                    ],
+                    "k_sol": [
+                        2.4587103936820216,
+                        450.0
+                    ]
+                }
+            },
+            "optimization_config": {
+                "objective_function": "RMSE",
+                "std_weight": 0.0,
+                "pop_size": 100,
+                "n_gen": 100
+            },
+            "selection_config": {
+                "criteria": "train error",
+                "select_R_star": true,
+                "threshold_config": {
+                    "type": "percentage",
+                    "x": 0.05
+                }
+            },
+            "clustering_config": {
+                "min_samples_ratio": 0.1,
+                "cl_eval_metric": "RMSE",
+                "cl_eval_criteria": "train error"
+            }
+        },
+        "model_name": "TwoR2C_TiTe",
+        "model_source": null
+    },
+    "results": {
+        "optimization": {
+            "n_gen_run": 100,
+            "stop_reason": "reached n_gen = 100"
+        },
+        "best_candidate": {
+            "params": {
+                "R_ie": 0.0027,
+                "R_ea": 6e-05,
+                "C_i": 327303201.74785,
+                "C_e": 32765266.84692,
+                "k_sol": 281.99626
+            },
+            "train_error": 0.10876,
+            "validation_error": NaN,
+            "criteria": 0.10876
+        },
+        "clustering-results": {
+            "0": {
+                "count": 1010,
+                "mean": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 327315927.06,
+                    "C_e": 32765224.04,
+                    "k_sol": 282.23
+                },
+                "std": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 34771.56,
+                    "C_e": 1364.17,
+                    "k_sol": 0.03
+                },
+                "min": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 327296566.96,
+                    "C_e": 32759093.71,
+                    "k_sol": 282.12
+                },
+                "max": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 327570314.51,
+                    "C_e": 32767327.06,
+                    "k_sol": 282.31
+                },
+                "p05": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 327303119.85,
+                    "C_e": 32762778.44,
+                    "k_sol": 282.17
+                },
+                "p50": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 327306927.48,
+                    "C_e": 32765270.32,
+                    "k_sol": 282.23
+                },
+                "p95": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 327351732.38,
+                    "C_e": 32766820.09,
+                    "k_sol": 282.24
+                },
+                "best_candidate": {
+                    "params": {
+                        "R_ie": 0.0027,
+                        "R_ea": 6e-05,
+                        "C_i": 327303258.56938,
+                        "C_e": 32765268.43036,
+                        "k_sol": 282.23424
+                    },
+                    "criteria": 0.10876,
+                    "validation_error": NaN,
+                    "train_error": 0.10876,
+                    "cl_eval_score": 0.15
+                }
+            },
+            "1": {
+                "count": 959,
+                "mean": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 326961262.54,
+                    "C_e": 32764361.2,
+                    "k_sol": 282.23
+                },
+                "std": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 10437.13,
+                    "C_e": 2639.9,
+                    "k_sol": 0.03
+                },
+                "min": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 326912718.72,
+                    "C_e": 32747716.16,
+                    "k_sol": 282.12
+                },
+                "max": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 326989412.54,
+                    "C_e": 32769140.02,
+                    "k_sol": 282.27
+                },
+                "p05": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 326942568.04,
+                    "C_e": 32761742.06,
+                    "k_sol": 282.13
+                },
+                "p50": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 326962454.51,
+                    "C_e": 32765379.37,
+                    "k_sol": 282.24
+                },
+                "p95": {
+                    "R_ie": 0.0,
+                    "R_ea": 0.0,
+                    "C_i": 326973210.38,
+                    "C_e": 32766841.18,
+                    "k_sol": 282.24
+                },
+                "best_candidate": {
+                    "params": {
+                        "R_ie": 0.0027,
+                        "R_ea": 6e-05,
+                        "C_i": 326962454.50869,
+                        "C_e": 32766815.75253,
+                        "k_sol": 282.23696
+                    },
+                    "criteria": 0.10877,
+                    "validation_error": NaN,
+                    "train_error": 0.10877,
+                    "cl_eval_score": 0.15
+                }
+            }
+        }
+    }
+}

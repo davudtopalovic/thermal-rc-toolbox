@@ -3,7 +3,8 @@
         "model_type": "5R1C_heat_demand",
         "init_config": {
             "method": "regime_aware",
-            "variant": "last"
+            "variant": "last",
+            "lag_h": 24
         }
     },
     "optimization_config": {
@@ -17,7 +18,7 @@
         "select_R_star": true,
         "threshold_config": {
             "type": "idx",
-            "x": 12000
+            "x": 13000
         }
     },
     "clustering_config": {

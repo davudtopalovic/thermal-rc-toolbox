@@ -1,6 +1,6 @@
 {"hems_id": "VUBC",
   "max_HP_power": 12000,
-  "JPD": {
+  "geometry": {
     "A_f": 154.2,
     "n_floors": 2
   },

@@ -1,0 +1,46 @@
+{
+    "model_config": {
+        "model_type": "3R2C_temperature",
+        "init_config": {
+            "method": "dynamic",
+            "lag_h": 24
+        },
+        "free_param_bounds": {
+            "R_ea": [
+                0.00030047992774433403,
+                0.18
+            ],
+            "C_i": [
+                407088.0,
+                1000000000.0
+            ],
+            "C_e": [
+                1542000.0,
+                1800000000.0
+            ],
+            "Phi_int": [
+                462.59999999999997,
+                10000.0
+            ]
+        }
+    },
+    "optimization_config": {
+        "objective_function": "RMSE",
+        "std_weight": 0.0,
+        "pop_size": 100,
+        "n_gen": 100
+    },
+    "selection_config": {
+        "criteria": "train error",
+        "select_R_star": true,
+        "threshold_config": {
+            "type": "percentage",
+            "x": 0.05
+        }
+    },
+    "clustering_config": {
+        "min_samples_ratio": 0.1,
+        "cl_eval_metric": "RMSE",
+        "cl_eval_criteria": "train error"
+    }
+}

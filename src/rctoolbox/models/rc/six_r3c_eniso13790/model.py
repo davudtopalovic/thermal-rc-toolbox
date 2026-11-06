@@ -14,9 +14,13 @@ Free parameters (10):
 
 Forward Euler discretization.
 
-Initialization: ``default`` (y_0 as provided) or ``dynamic`` (simulate the lag
-window with measured inputs; T_i_0 and T_h_0 keep their measured values, T_m_0
-is taken from the simulation) — both from ``RCBaseModel``.
+Initialization: the model builds its starting state from the measured T_i and
+T_h (``seed_state``: T_m = T_i - 1), at the forecast start (``T_i_0``,
+``T_h_0``) and at the lag-window start. ``default`` takes it as it is;
+``dynamic`` simulates the lag window with the measured inputs, T_i_0 and T_h_0
+keep their measured values, T_m_0 is taken from the simulation — both from
+``RCBaseModel``. ``init_config["lag_h"]`` uses only the last ``lag_h`` hours of
+the lag window (see ``RCBaseModel.prepare_init_data``).
 """
 import numpy as np
 
@@ -25,7 +29,9 @@ from rctoolbox.models.rc_base_model import RCBaseModel
 
 class SixR3C_ENISO13790(RCBaseModel):
     STATE_NAMES = ("T_i", "T_h", "T_m")
+    PARAM_NAMES = ("A_f", "H_em", "H_w", "H_ve", "c_f", "C_i", "A_w", "H_ih", "C_h", "Phi_int")
     HIDDEN_STATE_IDX = (2,)   # dynamic init: T_i and T_h stay measured, T_m from the lag simulation
+    SEED_SIGNALS = ("T_i", "T_h")   # seed_state builds the starting state from the measured T_i, T_h
     VALID_INIT_METHODS = frozenset({"default", "dynamic"})
 
     def __init__(self):
@@ -34,6 +40,12 @@ class SixR3C_ENISO13790(RCBaseModel):
         self.B = None
         self.E = None
         self.inv_C = None
+
+    def seed_state(self, T_i, T_h) -> np.ndarray:
+        """Starting state [T_i, T_h, T_m] (B, 3) from the measured T_i, T_h (B,):
+        T_m = T_i - 1 (placeholder for the hidden thermal mass)."""
+        T_i = np.asarray(T_i, dtype=np.float64)
+        return np.stack([T_i, np.asarray(T_h, dtype=np.float64), T_i - 1], axis=1)
 
     def set_params(self, params: dict) -> None:
         self.params = params

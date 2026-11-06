@@ -15,7 +15,8 @@
                 "model_type": "5R1C_heat_demand",
                 "init_config": {
                     "method": "regime_aware",
-                    "variant": "last"
+                    "variant": "last",
+                    "lag_h": 24
                 }
             },
             "optimization_config": {
@@ -29,7 +30,7 @@
                 "select_R_star": true,
                 "threshold_config": {
                     "type": "idx",
-                    "x": 12000
+                    "x": 13000
                 }
             },
             "clustering_config": {
@@ -37,9 +38,15 @@
                 "cl_eval_metric": "MAE",
                 "cl_eval_criteria": "val error"
             }
-        }
+        },
+        "model_name": "FiveR1C_ENISO13790",
+        "model_source": null
     },
     "results": {
+        "optimization": {
+            "n_gen_run": 150,
+            "stop_reason": "reached n_gen = 150"
+        },
         "best_candidate": {
             "params": {
                 "A_f": 128.25612,
@@ -56,69 +63,69 @@
         },
         "clustering-results": {
             "0": {
-                "count": 2469,
+                "count": 3185,
                 "mean": {
-                    "A_f": 117.2,
-                    "H_em": 410.95,
-                    "H_w": 46.49,
-                    "H_ve": 22.47,
-                    "c_f": 259056.54,
-                    "phi_int_f": 3.22,
-                    "k_sol": 2.16
+                    "A_f": 117.54,
+                    "H_em": 411.64,
+                    "H_w": 46.52,
+                    "H_ve": 22.5,
+                    "c_f": 258484.56,
+                    "phi_int_f": 3.31,
+                    "k_sol": 2.18
                 },
                 "std": {
-                    "A_f": 0.39,
-                    "H_em": 2.42,
-                    "H_w": 0.29,
-                    "H_ve": 0.45,
-                    "c_f": 1218.63,
-                    "phi_int_f": 0.26,
-                    "k_sol": 0.03
+                    "A_f": 0.99,
+                    "H_em": 2.5,
+                    "H_w": 0.33,
+                    "H_ve": 0.52,
+                    "c_f": 1811.44,
+                    "phi_int_f": 0.31,
+                    "k_sol": 0.06
                 },
                 "min": {
                     "A_f": 117.0,
                     "H_em": 408.34,
                     "H_w": 41.07,
                     "H_ve": 19.62,
-                    "c_f": 252636.06,
+                    "c_f": 242555.38,
                     "phi_int_f": 3.0,
                     "k_sol": 2.14
                 },
                 "max": {
-                    "A_f": 121.43,
-                    "H_em": 414.98,
-                    "H_w": 47.19,
-                    "H_ve": 23.4,
+                    "A_f": 122.46,
+                    "H_em": 415.05,
+                    "H_w": 50.7,
+                    "H_ve": 25.6,
                     "c_f": 259975.41,
-                    "phi_int_f": 4.31,
-                    "k_sol": 2.38
+                    "phi_int_f": 4.35,
+                    "k_sol": 2.47
                 },
                 "p05": {
                     "A_f": 117.0,
-                    "H_em": 408.43,
+                    "H_em": 408.94,
                     "H_w": 46.32,
-                    "H_ve": 21.86,
-                    "c_f": 255585.64,
-                    "phi_int_f": 3.0,
+                    "H_ve": 21.85,
+                    "c_f": 255017.03,
+                    "phi_int_f": 3.01,
                     "k_sol": 2.14
                 },
                 "p50": {
-                    "A_f": 117.04,
-                    "H_em": 409.05,
-                    "H_w": 46.38,
+                    "A_f": 117.05,
+                    "H_em": 413.76,
+                    "H_w": 46.41,
                     "H_ve": 22.53,
-                    "c_f": 259448.83,
-                    "phi_int_f": 3.04,
+                    "c_f": 259445.08,
+                    "phi_int_f": 3.29,
                     "k_sol": 2.16
                 },
                 "p95": {
-                    "A_f": 118.13,
-                    "H_em": 414.19,
+                    "A_f": 120.01,
+                    "H_em": 414.22,
                     "H_w": 46.93,
-                    "H_ve": 22.77,
-                    "c_f": 259602.44,
-                    "phi_int_f": 3.61,
-                    "k_sol": 2.26
+                    "H_ve": 23.0,
+                    "c_f": 259600.82,
+                    "phi_int_f": 3.67,
+                    "k_sol": 2.3
                 },
                 "best_candidate": {
                     "params": {

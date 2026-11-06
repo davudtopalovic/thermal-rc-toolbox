@@ -2,9 +2,18 @@ import argparse
 from rctoolbox.pipeline.runner import run_pipeline
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run the GA identification pipeline for a registered RC model")
+    parser = argparse.ArgumentParser(description="Run the GA identification pipeline for an RC model (registered, or local via model_config['module'])")
 
-    parser.add_argument("--building-config", type=str, required=True)
+    parser.add_argument(
+        "--building-config",
+        type=str,
+        default=None,
+        help=(
+            "Building config: a JSON path or the name of a packaged one (AIBF, VUBC, P8EE). "
+            "Optional; needed only by models that derive bounds or settings from the building "
+            "(geometry, exact_A_f_bounds, max_HP_power)."
+        ),
+    )
     parser.add_argument("--data-path", type=str, required=True)
     parser.add_argument("--identification-config", type=str, required=True)
 

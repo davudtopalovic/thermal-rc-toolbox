@@ -52,12 +52,19 @@ def run_pipeline(args, problem_kwargs=None):
     # ---------------------------
     # Load configs
     # ---------------------------
-    logger.info("Loading building configuration...")
-    if os.path.exists(args.building_config):
-        building_config = load_json_config(args.building_config, "building config")
+    # The building config is optional: only models whose bounds or setup depend
+    # on the building read it (they raise if a key they need is missing).
+    building_spec = getattr(args, "building_config", None)
+    if building_spec is None:
+        logger.info("No building configuration given")
+        building_config = {}
+    elif os.path.exists(building_spec):
+        logger.info("Loading building configuration...")
+        building_config = load_json_config(building_spec, "building config")
     else:
+        logger.info("Loading building configuration...")
         from rctoolbox.utils.config_loader import load_default_building_config
-        building_config = load_default_building_config(args.building_config)
+        building_config = load_default_building_config(building_spec)
 
     logger.info("Loading identification configuration...")
     config = load_json_config(args.identification_config, "identification config")
@@ -94,15 +101,33 @@ def run_pipeline(args, problem_kwargs=None):
     logger.info(f"Data loaded from: {args.data_path}")
 
     # ---------------------------
-    # Model plugin (registry-driven)
+    # Model plugin
     # ---------------------------
-    from rctoolbox.pipeline.registry import get_plugin
-    model_type = config["model_config"]["model_type"]
-    plugin = get_plugin(model_type)
-    logger.info(f"Using model plugin: {model_type}")
+    # model_config["model_type"] picks a registered model; model_config["module"]
+    # points to local model code instead (see rctoolbox.pipeline.plugin), which
+    # is copied into the results directory and recorded there in results.json.
+    from rctoolbox.pipeline.plugin import build_parameter_space, resolve_plugin, snapshot_module, load_optimizer
+    config_dir = os.path.dirname(os.path.abspath(args.identification_config))
+    plugin, model_module = resolve_plugin(model_config, base_dir=config_dir)
+    model_source = None
+    if model_module is not None:
+        module_spec = model_config["module"]
+        model_config["module"], model_source = snapshot_module(
+            module_spec, config_dir, args.results_directory_path
+        )
+        logger.info(f"Using local model plugin: {module_spec}")
+        if model_source:
+            logger.info(f"Model code copied to: {os.path.join(args.results_directory_path, os.path.basename(model_source))}")
+    else:
+        logger.info(f"Using model plugin: {model_config['model_type']}")
 
-    parameter_space = plugin.parameter_space_cls.from_building_config(building_config)
+    parameter_space = build_parameter_space(plugin, building_config, model_config)
+    if model_config.get("free_param_bounds"):
+        logger.info(f"Bounds overridden by model_config['free_param_bounds']: {sorted(model_config['free_param_bounds'])}")
     model = plugin.model_factory(building_config, model_config)
+    # The model's own name (RCBaseModel.name: NAME, else the class name).
+    model_name = getattr(model, "name", type(model).__name__)
+    logger.info(f"Model: {model_name}")
 
     # ---------------------------
     # Objective function
@@ -235,8 +260,7 @@ def run_pipeline(args, problem_kwargs=None):
         # Load optimizer from disk (skipping earlier stages)
         # ---------------------------
         logger.info(f"Loading optimizer from disk: {optimizer_path}")
-        with open(optimizer_path, "rb") as f:
-            optimizer = pickle.load(f)
+        optimizer = load_optimizer(optimizer_path, model_module)
         logger.info("Optimizer loaded successfully")
 
         if 2 in stages_to_run:
@@ -389,7 +413,9 @@ def run_pipeline(args, problem_kwargs=None):
             "setup": {
                 "building_config": building_config,
                 "seed": args.seed,
-                "identification_config": config
+                "identification_config": config,
+                "model_name": model_name,
+                "model_source": model_source,
             },
             "results": {
                 "optimization": {

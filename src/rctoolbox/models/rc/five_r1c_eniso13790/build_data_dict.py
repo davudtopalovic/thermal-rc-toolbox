@@ -1,45 +1,68 @@
 """Build the per-batch data dict consumed by HeatDemandProblem.
 
-State vector for 5R1C is [T_m, T_s, T_i]; ``y_0`` and ``y_0_`` (lag) are
-pre-computed here with the conventional ad-hoc offsets ``T_m = T_i - 2`` and
-``T_s = T_i - 1``.
+The dict holds measurements only. The model builds its starting state itself
+(``FiveR1C_ENISO13790.seed_state``: [T_m, T_s, T_i] = [T_i - 2, T_i - 1, T_i])
+from the measured T_i at the forecast start (``T_i_0``) and at the lag-window
+start, and ``init_config["lag_h"]`` can shorten the lag window. Data dicts
+written earlier, which carry ``y_0`` / ``y_0_``, still work.
+
+The model's signals are read from the dataframe columns given by ``columns``
+(signal -> column). Signals left out keep their default column
+(``DEFAULT_COLUMNS``); ``DR`` and ``controlled_flag`` are optional and are
+``None`` when their column was not loaded. ``Phi_HC_col`` and ``y1_set_col``
+are the older shorthands for ``columns["Phi_HC"]`` and ``columns["T_i_set"]``.
 """
-import numpy as np
+DEFAULT_COLUMNS = {
+    "T_i":     "y1",       # indoor air temperature [degC]
+    "T_a":     "T_a",      # outdoor air temperature [degC]
+    "Phi_sol": "Phi_sol",  # solar irradiance [W/m2]
+    "Phi_HC":  "Phi_HC",   # heat power [W]
+    "T_i_set": "y1_set",   # indoor air setpoint [degC]
+    "DR":      "DR",
+    "controlled_flag": "controlled_flag",
+}
+# signals the initialization reads over the lag window (``<signal>_``)
+LAG_SIGNALS = ("T_i", "T_a", "Phi_sol", "Phi_HC", "T_i_set")
 
 
-def build_data_dict(dataloader, split_name, Phi_HC_col="Phi_HC", y1_set_col="y1_set"):
+def resolve_columns(columns=None, Phi_HC_col=None, y1_set_col=None) -> dict:
+    """Signal -> data column for every signal (defaults, then the shorthands,
+    then ``columns``)."""
+    legacy = {"Phi_HC": Phi_HC_col, "T_i_set": y1_set_col}
+    columns = {**DEFAULT_COLUMNS, **{k: v for k, v in legacy.items() if v is not None}, **(columns or {})}
+    unknown = set(columns) - set(DEFAULT_COLUMNS)
+    if unknown:
+        raise KeyError(f"Unknown 5R1C signals {sorted(unknown)}; expected a subset of {list(DEFAULT_COLUMNS)}")
+    return columns
+
+
+def init_data(di, columns) -> dict:
+    """Initialization data of a batch (``di`` = its ``data_inputs``): T_i at the
+    forecast start and the lag-window measurements; ``columns`` as returned by
+    ``resolve_columns``."""
+    return {
+        "T_i_0": di[columns["T_i"]][:, 0],
+        "t_":    di["t_array_1Dlag"],
+        **{f"{s}_": di[f"{columns[s]}_1Dlag"] for s in LAG_SIGNALS},
+    }
+
+
+def build_data_dict(dataloader, split_name, Phi_HC_col=None, y1_set_col=None, columns=None):
+    columns = resolve_columns(columns, Phi_HC_col, y1_set_col)
+
     b  = dataloader.batches[split_name]["batch_0"]
     di = b["data_inputs"]
-
-    T_i  = di["y1"]
-    T_i0 = T_i[:, 0]
-    T_m0 = T_i0 - 2
-    T_s0 = T_i0 - 1
-    y_0  = np.stack([T_m0, T_s0, T_i0], axis=1)
-
-    T_i_ = di["y1_1Dlag"]
-    T_i0_ = T_i_[:, 0]
-    T_m0_ = T_i0_ - 2
-    T_s0_ = T_i0_ - 1
-    y_0_ = np.stack([T_m0_, T_s0_, T_i0_], axis=1)
+    x  = lambda signal: di[columns[signal]]
 
     return {
         "t":        b["t_array"],
-        "T_i":      T_i,
-        "T_a":      di["T_a"],
-        "Phi_sol":  di["Phi_sol"],
-        "Phi_HC":   di[Phi_HC_col],
-        "Phi_HC_0": di[Phi_HC_col][:, 0],
-        "T_i_set":  di[y1_set_col],
-        "DR":       di.get("DR"),
-        "controlled_flag": di.get("controlled_flag"),
-        "data_for_init_state": {
-            "y_0":      y_0,       "y_0_":     y_0_,
-            "t_":       di["t_array_1Dlag"],
-            "T_i_":     T_i_,
-            "T_a_":     di["T_a_1Dlag"],
-            "Phi_sol_": di["Phi_sol_1Dlag"],
-            "Phi_HC_":  di[f"{Phi_HC_col}_1Dlag"],
-            "T_i_set_": di[f"{y1_set_col}_1Dlag"],
-        },
+        "T_i":      x("T_i"),
+        "T_a":      x("T_a"),
+        "Phi_sol":  x("Phi_sol"),
+        "Phi_HC":   x("Phi_HC"),
+        "Phi_HC_0": x("Phi_HC")[:, 0],
+        "T_i_set":  x("T_i_set"),
+        "DR":       di.get(columns["DR"]),
+        "controlled_flag": di.get(columns["controlled_flag"]),
+        "data_for_init_state": init_data(di, columns),
     }

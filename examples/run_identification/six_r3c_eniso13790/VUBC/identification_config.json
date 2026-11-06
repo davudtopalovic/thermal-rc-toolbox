@@ -2,7 +2,8 @@
     "model_config": {
         "model_type": "6R3C_temperature",
         "init_config": {
-            "method": "dynamic"
+            "method": "dynamic",
+            "lag_h": 24
         },
         "output_states": [
             [

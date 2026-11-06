@@ -1,6 +1,6 @@
 [project]
 name = "thermal-rc-toolbox"
-version = "0.1.0"
+version = "0.2.0"
 description = "A toolbox for calibration and simulation of RC thermal models for building indoor dynamics and heat demand."
 authors = [
     { name = "Davud Topalovic" }

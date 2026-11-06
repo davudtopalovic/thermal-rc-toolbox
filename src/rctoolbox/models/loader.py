@@ -7,15 +7,15 @@ initialization, and integration, each applied only if the class supports it —
 plus the selected parameter vector.
 
     from rctoolbox.models.loader import load_best_model
-    from rctoolbox.models.rc.two_r2c.model import TwoR2C
+    from rctoolbox.models.rc.TwoR2C_TiTe.model import TwoR2C_TiTe
 
-    model = load_best_model("results/results.json", TwoR2C)
+    model = load_best_model("results/results.json", TwoR2C_TiTe)
 
 The per-model loader modules (``five_r1c_eniso13790.loader``,
-``two_r2c.loader``, ``three_r2c.loader``) remain available and unchanged;
+``TwoR2C_TiTe.loader``, ``ThreeR2C_TiTe.loader``) remain available and unchanged;
 this is the class-parameterized alternative so new models do not need a
 loader module of their own. (For registry-registered model types,
-``three_r2c.loader.load_best_model`` offers the complementary variant that
+``ThreeR2C_TiTe.loader.load_best_model`` offers the complementary variant that
 dispatches on the ``model_type`` stored in the results instead of taking a
 class.)
 """
@@ -30,7 +30,7 @@ def load_best_model(results_path, model_cls, best_from_cluster=False):
     results_path : str or Path
         Path to the ``results.json`` written by the identification pipeline.
     model_cls : type
-        The model class to instantiate (e.g. ``TwoR2C``, ``ThreeR2C``,
+        The model class to instantiate (e.g. ``TwoR2C_TiTe``, ``ThreeR2C_TiTe``,
         ``FiveR1C_ENISO13790``).
     best_from_cluster : bool
         If True, use the best candidate of the best-scoring cluster

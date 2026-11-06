@@ -2,37 +2,28 @@ import numpy as np
 import pandas as pd
 from rctoolbox.evaluation.forecast_metrics import evaluate_forecast
 from rctoolbox.evaluation.error_threshold import err_thr
+from rctoolbox.models.rc.five_r1c_eniso13790.build_data_dict import init_data, resolve_columns
+
+# Both functions read the signals through ``columns`` (signal -> data column,
+# see ``build_data_dict.resolve_columns``; ``y1_set_col`` is the shorthand for
+# columns["T_i_set"]) and let the model build its starting state from the
+# measurements (``init_data``), as in the training data dict.
 
 
-def predict_for_batch_and_evaluate(model, batch, y1_set_col, err_thr=err_thr, use_control_day_mask: bool = False):
-    t        = batch["t_array"]
-    t_datetime  = batch["data_inputs"]["t_datetime"]
-    T_i      = batch["data_inputs"]["y1"]
-    T_a      = batch["data_inputs"]["T_a"]
-    Phi_sol  = batch["data_inputs"]["Phi_sol"]
-    Phi_HC   = batch["data_inputs"]["Phi_HC"]
-    Phi_HC_0 = Phi_HC[:,0]
-    T_i_set  = batch["data_inputs"][y1_set_col]
+def predict_for_batch_and_evaluate(model, batch, y1_set_col, err_thr=err_thr, use_control_day_mask: bool = False,
+                                   columns=None):
+    c  = resolve_columns(columns, y1_set_col=y1_set_col)
+    di = batch["data_inputs"]
+    t          = batch["t_array"]
+    t_datetime = di["t_datetime"]
+    T_a        = di[c["T_a"]]
+    Phi_sol    = di[c["Phi_sol"]]
+    Phi_HC     = di[c["Phi_HC"]]
+    Phi_HC_0   = Phi_HC[:,0]
+    T_i_set    = di[c["T_i_set"]]
 
-    T_i_0 = T_i[:,0]; T_s_0 = T_i_0 - 1; T_m_0 = T_i_0 - 2
-    y_0 = np.stack([T_m_0, T_s_0, T_i_0], axis=1)
-
-    # State initialization batches
-    t_       = batch["data_inputs"]["t_array_1Dlag"]
-    T_i_     = batch["data_inputs"]["y1_1Dlag"]
-    T_a_     = batch["data_inputs"]["T_a_1Dlag"]
-    Phi_sol_ = batch["data_inputs"]["Phi_sol_1Dlag"]
-    Phi_HC_  = batch["data_inputs"]["Phi_HC_1Dlag"]
-    T_i_set_ = batch["data_inputs"][f"{y1_set_col}_1Dlag"]
-
-    T_i_0_ = T_i_[:,0]; T_s_0_ = T_i_0_ - 1; T_m_0_ = T_i_0_ - 2
-    y_0_ = np.stack([T_m_0_, T_s_0_, T_i_0_], axis=1)
-
-    data_for_init_state = {"y_0": y_0, # default approximated initial state
-                                # pre-window lag inputs for getting initial state of the model
-                                "y_0_": y_0_, "t_": t_, "T_i_": T_i_, "T_a_": T_a_, "Phi_sol_": Phi_sol_, "Phi_HC_": Phi_HC_, "T_i_set_": T_i_set_}
-    
-    y_0 = model.get_initial_state(data=data_for_init_state)
+    # Initial state: built by the model from the measurements (seed + init method)
+    y_0 = model.get_initial_state(data=init_data(di, c))
     Phi_HC_pred, _ = model.forecast_heat_demand(y_0, Phi_HC_0, t, T_a, Phi_sol, T_i_set)
 
     Y_true = Phi_HC.copy() / 1e3       # convert to kW
@@ -56,34 +47,18 @@ def predict_for_batch_and_evaluate(model, batch, y1_set_col, err_thr=err_thr, us
     
     return p
 
-def predict_for_batch(model, batch,  y1_set_col, raw_dfs, use_control_day_mask: bool = False):
+def predict_for_batch(model, batch,  y1_set_col, raw_dfs, use_control_day_mask: bool = False, columns=None):
+    c  = resolve_columns(columns, y1_set_col=y1_set_col)
+    di = batch["data_inputs"]
     t        = batch["t_array"]
-    T_i      = batch["data_inputs"]["y1"]
-    T_a      = batch["data_inputs"]["T_a"]
-    Phi_sol  = batch["data_inputs"]["Phi_sol"]
-    Phi_HC   = batch["data_inputs"]["Phi_HC"]
+    T_a      = di[c["T_a"]]
+    Phi_sol  = di[c["Phi_sol"]]
+    Phi_HC   = di[c["Phi_HC"]]
     Phi_HC_0 = Phi_HC[:,0]
-    T_i_set  = batch["data_inputs"][y1_set_col]
+    T_i_set  = di[c["T_i_set"]]
 
-    T_i_0 = T_i[:,0]; T_s_0 = T_i_0 - 1; T_m_0 = T_i_0 - 2
-    y_0 = np.stack([T_m_0, T_s_0, T_i_0], axis=1)
-
-    # State initialization batches
-    t_       = batch["data_inputs"]["t_array_1Dlag"]
-    T_i_     = batch["data_inputs"]["y1_1Dlag"]
-    T_a_     = batch["data_inputs"]["T_a_1Dlag"]
-    Phi_sol_ = batch["data_inputs"]["Phi_sol_1Dlag"]
-    Phi_HC_  = batch["data_inputs"]["Phi_HC_1Dlag"]
-    T_i_set_ = batch["data_inputs"][f"{y1_set_col}_1Dlag"]
-
-    T_i_0_ = T_i_[:,0]; T_s_0_ = T_i_0_ - 1; T_m_0_ = T_i_0_ - 2
-    y_0_ = np.stack([T_m_0_, T_s_0_, T_i_0_], axis=1)
-
-    data_for_init_state = {"y_0": y_0, # default approximated initial state
-                                # pre-window lag inputs for getting initial state of the model
-                                "y_0_": y_0_, "t_": t_, "T_i_": T_i_, "T_a_": T_a_, "Phi_sol_": Phi_sol_, "Phi_HC_": Phi_HC_, "T_i_set_": T_i_set_}
-    
-    y_0 = model.get_initial_state(data=data_for_init_state)
+    # Initial state: built by the model from the measurements (seed + init method)
+    y_0 = model.get_initial_state(data=init_data(di, c))
     Phi_HC_pred, Y_pred = model.forecast_heat_demand(y_0, Phi_HC_0, t, T_a, Phi_sol, T_i_set)
 
     if "missing_flag" in batch["data_inputs"]:

@@ -1,3 +1,4 @@
+from rctoolbox.identification.building_info import floor_area_bounds, require
 from rctoolbox.identification.parameter_space import BaseParameterSpace
 
 
@@ -9,16 +10,14 @@ class RCParameterSpace(BaseParameterSpace):
         # ---------------------------
         self.building_config = building_config
 
-        if "max_HP_power" not in self.building_config:
-            raise ValueError("building_config must contain 'max_HP_power'")
+        require(self.building_config, "max_HP_power", "5R1C", "upper limit of the heat power")
 
         # ---------------------------
         # Initialize
         # ---------------------------
         self.get_HP_specifics()
         self.get_free_params()
-        self.get_Af_n_floors()
-        self.calculate_physical_param_bounds(self.JPD, self.exact_A_f_bounds)
+        self.calculate_physical_param_bounds()
         self.get_free_param_bounds()
         self.get_params_latex()
 
@@ -40,25 +39,12 @@ class RCParameterSpace(BaseParameterSpace):
         self.max_HP_power = self.building_config.get("max_HP_power")
 
     # ---------------------------
-    # Building geometry input
-    # ---------------------------
-    def get_Af_n_floors(self):
-        self.JPD = self.building_config.get("JPD")
-        self.exact_A_f_bounds = self.building_config.get("exact_A_f_bounds")
-
-    # ---------------------------
     # Physics bounds
     # ---------------------------
-    def calculate_physical_param_bounds(self, javni_pogled_data=None, exact_A_f_bounds=None):
+    def calculate_physical_param_bounds(self):
 
-        if javni_pogled_data:
-            A_f_min = (0.5 * javni_pogled_data["n_floors"]) * javni_pogled_data["A_f"] # A_f_min = 0.5 * n_floors * A_f, i.e. at least 50% of the total floor area (all floors) is considered as the building conditioned zone. 
-            A_f_max = (javni_pogled_data["n_floors"] + 0.3) * javni_pogled_data["A_f"] # A_f_max = (n_floors + 0.3) * A_f, i.e. at most 130% of the total floor area (all floors) is considered as the building conditioned zone. The extra 30% is to allow for some cases where the conditioned zone might be larger than the total floor area due to e.g. large balconies or terraces that are included in the conditioned zone.
-
-        elif exact_A_f_bounds:
-            A_f_min, A_f_max = exact_A_f_bounds
-        else:
-            raise ValueError("Either javni_pogled_data or exact_A_f_bounds must be provided in the building config.")
+        # conditioned floor area range from building_config["geometry"] or ["exact_A_f_bounds"]
+        A_f_min, A_f_max = floor_area_bounds(self.building_config, "5R1C")
 
         # constants
         rho_a_c_a = 1.2e3

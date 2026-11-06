@@ -16,6 +16,9 @@ Required in a subclass
     Tuple of node names in state-vector order, e.g. ``("T_m", "T_s", "T_i")``.
     It must contain ``"T_i"``: the indoor-air (thermostat) node is what the
     inverse heat-demand model regulates.
+``PARAM_NAMES``
+    Tuple of the parameter names ``set_params`` reads. ``states`` and
+    ``parameters`` return these two tuples.
 ``set_params(params)``
     Store the parameter dict and derive whatever the step needs.
 ``calc_temperature(y_prev, dt, T_a, Phi_sol, Phi_HC, **step_kwargs)``
@@ -37,7 +40,13 @@ Optional hooks
 ``calc_energy_demand(...)``
     Defaults to the EN ISO 13790 two-probe interpolation, which is exact for
     any model whose one-step map is affine in ``Phi_HC``. Override when a
-    closed form is cheaper (see ``TwoR2C``).
+    closed form is cheaper (see ``TwoR2C_TiTe``).
+``SEED_SIGNALS`` and ``seed_state(**measured)``
+    Let the model build its own starting state: ``seed_state`` maps the
+    measured signals named in ``SEED_SIGNALS`` (each (B,)) to a state (B,
+    n_states), e.g. 5R1C ``T_i -> [T_i - 2, T_i - 1, T_i]``. With them the
+    data dict needs no ``y_0`` / ``y_0_`` and ``init_config["lag_h"]`` works
+    (see ``prepare_init_data``).
 ``HIDDEN_STATE_IDX``
     Which state columns the ``dynamic`` / ``regime_aware`` initializations
     take from the lag-window simulation. ``None`` (the default) replaces the
@@ -54,11 +63,23 @@ uniformly spaced.
 
 Initialization ``data`` dict
 ----------------------------
-``y_0`` (B, n_states)
-    State at the forecast start; the measured columns are already filled.
-``y_0_``, ``t_``, ``T_a_``, ``Phi_sol_``, ``Phi_HC_``, ``T_i_``, ``T_i_set_``
-    The same quantities over the lag window preceding the forecast start
-    (trailing underscore), used to warm up or invert the hidden states.
+``t_``, ``T_a_``, ``Phi_sol_``, ``Phi_HC_``, ``T_i_``, ``T_i_set_``, ...
+    The measurements over the lag window preceding the forecast start
+    (trailing underscore), used to warm up or invert the hidden states. The
+    lag window ends at the forecast start (its last sample is the first
+    sample of the forecast window).
+``<signal>_0`` (B,), for each signal in ``SEED_SIGNALS`` (e.g. ``T_i_0``)
+    The measured value at the forecast start, from which the model builds
+    ``y_0`` (``seed_state``); ``y_0_`` is built from the first lag samples.
+``y_0`` / ``y_0_`` (B, n_states), optional
+    Starting states at the forecast / lag-window start, the measured columns
+    filled. Data dicts written before the models built their own seeds carry
+    them, and models without ``seed_state`` need them; when given they are
+    used as they are (``y_0_`` is rebuilt when ``lag_h`` shortens the lag
+    window, since it then belongs to a different start).
+``init_config["lag_h"]`` (hours) makes every method use only the last
+``lag_h`` hours of the lag window (``crop_lag_window``), so one data set
+serves every lag up to the one it was prepared with.
 """
 from abc import ABC, abstractmethod
 
@@ -68,6 +89,12 @@ import numpy as np
 class RCBaseModel(ABC):
     STATE_NAMES: tuple[str, ...] = ()
     HIDDEN_STATE_IDX: tuple[int, ...] | None = None
+    # Measured signals ``seed_state`` builds the starting state from; () means
+    # the model has no ``seed_state`` and the data must supply y_0 / y_0_.
+    SEED_SIGNALS: tuple[str, ...] = ()
+    # Lag window used by the initialization [h]; None: all of it (set via
+    # init_config["lag_h"], see ``crop_lag_window``).
+    lag_h: float | None = None
 
     VALID_INIT_METHODS: frozenset[str] = frozenset(
         {"default", "dynamic", "static_inversion", "regime_aware"}
@@ -91,6 +118,28 @@ class RCBaseModel(ABC):
         self.heat_power_range = None
 
     # ------------------------------------------------------------ structure
+    # Model name; None falls back to the class name. Local models (plugin.py,
+    # generic class ``Model``) set it so that results and messages name them.
+    NAME: str | None = None
+
+    @property
+    def name(self) -> str:
+        return self.NAME or type(self).__name__
+
+    # Names of the parameters ``set_params`` reads, e.g. ``("R_ia", "C_i")``.
+    PARAM_NAMES: tuple[str, ...] = ()
+
+    @property
+    def states(self) -> tuple[str, ...]:
+        """State names, in state-vector (column) order."""
+        return self.STATE_NAMES
+
+    @property
+    def parameters(self) -> tuple[str, ...]:
+        """Names of the model parameters (the keys ``set_params`` expects);
+        their current values are in ``self.params``."""
+        return self.PARAM_NAMES
+
     @property
     def n_states(self) -> int:
         return len(self.STATE_NAMES)
@@ -180,6 +229,7 @@ class RCBaseModel(ABC):
             {"method": "static_inversion", "variant": "mean"}
             {"method": "static_inversion"}                   # variant defaults to "last"
             {"method": "regime_aware"}                       # static, dynamic under DR
+            {"method": "dynamic", "lag_h": 12}               # only the last 12 h of the lag window
         """
         if "method" not in init_config:
             raise ValueError("Initialization config must contain key 'method'")
@@ -188,7 +238,7 @@ class RCBaseModel(ABC):
 
         if method not in self.VALID_INIT_METHODS:
             raise ValueError(
-                f"Unknown {type(self).__name__} initialization method '{method}'. "
+                f"Unknown {self.name} initialization method '{method}'. "
                 f"Must be one of {sorted(self.VALID_INIT_METHODS)}"
             )
         self.init_type = method
@@ -205,13 +255,73 @@ class RCBaseModel(ABC):
         else:
             self.static_inversion_method = None
 
+        self.set_lag_window(init_config)
+
+    def set_lag_window(self, init_config: dict) -> None:
+        """Read ``init_config["lag_h"]`` (hours of the lag window the
+        initialization uses; missing/None: all of it). Models that override
+        ``set_initialization`` call this too."""
+        lag_h = init_config.get("lag_h")
+        if lag_h is not None and float(lag_h) < 0:
+            raise ValueError(f"lag_h must be >= 0 (hours), got {lag_h}")
+        self.lag_h = None if lag_h is None else float(lag_h)
+
+    def seed_state(self, **measured) -> np.ndarray:
+        """Starting state (B, n_states) from the measured signals in
+        ``SEED_SIGNALS`` (keyword arguments, each (B,)): the measured columns
+        and a placeholder for the hidden ones, which the initialization method
+        then replaces. Models that define it set ``SEED_SIGNALS``."""
+        raise NotImplementedError(f"{self.name} does not build its own starting state")
+
+    def crop_lag_window(self, data: dict) -> dict:
+        """``data`` with the lag-window arrays (``t_`` and ``<signal>_``) cut to
+        their last ``lag_h`` hours; the lag window ends at the forecast start
+        and must hold at least ``lag_h`` hours. ``lag_h=None``: unchanged."""
+        if self.lag_h is None:
+            return data
+        _, dt = self._dt_from_t(data["t_"])
+        n = int(round(self.lag_h * 3600.0 / dt)) + 1      # samples, both ends included (as in the data)
+        n_data = np.shape(data["t_"])[-1]
+        if n > n_data:
+            raise ValueError(
+                f"{self.name}: lag_h = {self.lag_h:g} h needs {n} lag-window samples, the data has "
+                f"{n_data} ({(n_data - 1) * dt / 3600:g} h); prepare the data with a longer lag window"
+            )
+        cropped = {k: (np.asarray(v)[..., -n:] if k.endswith("_") and k != "y_0_" else v)
+                   for k, v in data.items()}
+        cropped.pop("y_0_", None)   # belongs to the uncropped lag-window start
+        return cropped
+
+    def prepare_init_data(self, data: dict) -> dict:
+        """The initialization data the methods work on: the lag window cropped
+        to ``lag_h`` and the starting states ``y_0`` (forecast start) and
+        ``y_0_`` (lag-window start). States the data already carries are kept;
+        missing ones are built by ``seed_state`` from ``<signal>_0`` and from
+        the first lag samples ``<signal>_[:, 0]``."""
+        data = self.crop_lag_window(data)
+        if not self.SEED_SIGNALS:
+            if self.lag_h is not None and "y_0_" not in data and self.init_type in ("dynamic", "regime_aware"):
+                raise ValueError(
+                    f"{self.name} has no seed_state, so it cannot rebuild y_0_ for a shorter "
+                    f"lag window; drop init_config['lag_h'] or prepare the data with the lag wanted"
+                )
+            return data
+        data = dict(data)
+        if "y_0" not in data:
+            data["y_0"] = self.seed_state(**{s: data[f"{s}_0"] for s in self.SEED_SIGNALS})
+        if "y_0_" not in data:
+            data["y_0_"] = self.seed_state(**{s: np.asarray(data[f"{s}_"])[:, 0] for s in self.SEED_SIGNALS})
+        return data
+
     def get_initial_state(self, data: dict, **step_kwargs) -> np.ndarray:
         """Initial state (B, n_states) for the configured method.
 
         ``step_kwargs`` are forwarded to the lag-window simulation of the
         dynamic/regime_aware methods so that initialization and forecasting
         can be kept under the same per-call options (e.g. ``integration``).
+        The data first goes through ``prepare_init_data`` (lag window, seeds).
         """
+        data = self.prepare_init_data(data)
         if self.init_type == "default":
             return data["y_0"]
         if self.init_type == "dynamic":
@@ -256,7 +366,7 @@ class RCBaseModel(ABC):
         """Reconstruct the hidden states from a quasi-steady-state balance at
         the lag-window end. Model-specific: the subclass knows its network."""
         raise NotImplementedError(
-            f"{type(self).__name__} does not implement static inversion; "
+            f"{self.name} does not implement static inversion; "
             "use init method 'default' or 'dynamic'."
         )
 

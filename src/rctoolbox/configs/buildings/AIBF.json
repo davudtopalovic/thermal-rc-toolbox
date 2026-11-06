@@ -1,6 +1,6 @@
 {"hems_id": "AIBF",
   "max_HP_power": 12000,
-  "JPD": {
+  "geometry": {
     "A_f": 117,
     "n_floors": 2
   },

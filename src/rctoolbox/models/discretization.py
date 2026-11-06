@@ -6,7 +6,7 @@ Textbook form. Continuous-time model:
 
 where u collects ALL inputs held constant over each step (zero-order hold) —
 controls and disturbances alike; the model class decides the column layout of
-B (e.g. TwoR2C stacks its control column and disturbance columns before
+B (e.g. TwoR2C_TiTe stacks its control column and disturbance columns before
 calling this). The exact discrete one-step map is
 
     x_k = A_d x_{k-1} + B_d u_k,

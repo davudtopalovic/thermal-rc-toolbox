@@ -2,14 +2,14 @@
   <img src="logo/logo2_full_p256.png" alt="thermal-rc-toolbox" width="300">
 </p>
 
-`thermal-rc-toolbox` is a Python package for **grey-box thermal modelling
+`thermal-rc-toolbox` is a Python package for **gray-box thermal modeling
 of buildings**. It supports arbitrary RC-network structures and provides a pipeline for parameter identification.
 
-The identification pipeline is **GA-based**. Users configure the
-**physics-based bounds on the parameter space** and the **objective function** the GA optimises against. The converged solution space is then
-analysed via **clustering** to expose **parameter uncertainty** and reveal
+The identification pipeline is **based on a Genetic Algorithm (GA)**. Users configure the
+**physics-based bounds on the parameter space** and the **objective function** the GA optimizes against. The converged solution space is then
+analyzed via **clustering** to expose **parameter uncertainty** and reveal
 **distinct groups of solutions**. Concretely, the pipeline
-runs in three stages — **optimisation → selection → clustering**.
+runs in three stages — **optimization → selection → clustering**.
 
 ## Features
 - **GA identification pipeline** (Pymoo): LHS sampling, SBX crossover, PM
@@ -25,7 +25,9 @@ runs in three stages — **optimisation → selection → clustering**.
   - **5R1C EN ISO 13790** — forecasting of heat-power demand as function of thermostat setpoint and weather disturbances.
   - **Extended 6R3C EN ISO 13790** — joint forecasting of indoor air and supply water temperatures.
   - **2R2C** and **3R3C** — generic RC topologies for user-defined thermal networks.
-- **Plugin registry** — drop in your own RC topology alongside the built-ins.
+- **Plugin registry or local models** — use a built-in RC topology by name, or
+  point the config at your own model code in the training folder; it is copied
+  into the results so the run can be reloaded with `load_run`.
 
 ## Models
 
@@ -122,9 +124,107 @@ uv run jupyter lab examples/run_identification/five_r1c_eniso13790/AIBF/train.ip
 
 Both produce the same `results/results.json` and figures under `results/figs/`.
 
+#### Building config and parameter bounds
+
+`--building-config` (a JSON path, or `AIBF` / `VUBC` / `P8EE` for the packaged
+ones) is optional. Only models whose bounds or settings depend on the building
+read it, and they say which key is missing:
+
+| key | used by |
+|---|---|
+| `"geometry": {"A_f": ..., "n_floors": ...}` (or `"exact_A_f_bounds": [min, max]`) | 5R1C, 2R2C, 3R2C: bounds derived from the conditioned floor area |
+| `"max_HP_power"` | 5R1C and the heat-demand tasks: upper limit of the heat power |
+
+The 1R1C, 3R3C, 5R4C and 6R3C have fixed default bounds and need no building
+config. Bounds chosen for a calibration go into the identification config;
+only the parameters listed there change:
+
+```json
+"model_config": {
+    "model_type": "2R2C_temperature",
+    "init_config": {"method": "dynamic", "lag_h": 24},
+    "free_param_bounds": {"C_i": [4.07e5, 1e9], "R_ea": [3e-5, 0.0177]}
+}
+```
+
+`load_run(...).parameter_space()` returns the space a run searched in.
+
+#### Initial state and lag window
+
+The data dict holds measurements only: the lag window before each forecast
+window (`t_`, `T_i_`, `T_a_`, ... in `data_for_init_state`) and the measured
+states at the forecast start (`T_i_0`, ...). The model builds its starting
+state itself (`seed_state`, e.g. 5R1C `T_m = T_i - 2`, `T_s = T_i - 1`) and
+then applies the initialization method of `init_config`. `init_config["lag_h"]`
+(hours) makes the method use only the last `lag_h` hours of the lag window, so
+one data set prepared with a long lag serves every shorter one:
+
+```json
+"init_config": {"method": "dynamic", "lag_h": 12}
+```
+
+Every model in `models/rc` builds its own starting state (`SEED_SIGNALS` and
+`seed_state` on the model class; the shared data helpers are in
+`rctoolbox/models/init_data.py`). Models with a hidden mass whose start value
+used to be an argument of `build_data_dict` (`T_m0`) take it from
+`init_config["T_m0"]`; passing `T_m0` to the data helpers still works but is
+deprecated. Data dicts written before this change (with `y_0` / `y_0_`) still
+work and give the same results.
+
+#### Model: registered or local
+
+`model_config` selects the model in one of two ways:
+
+- `"model_type": "5R1C_heat_demand"` uses a model registered in
+  `rctoolbox/pipeline/registry.py`;
+- `"module": "plugin.py"` uses model code that lives next to the
+  identification config, so a new model can be tested without adding it to
+  the toolbox. The module defines a `PLUGIN`:
+
+```python
+# plugin.py
+from rctoolbox.pipeline.plugin import ModelPlugin
+
+def build_model(building_config, model_config):
+    model = MyModel()
+    model.set_initialization(init_config=model_config["init_config"])
+    return model
+
+PLUGIN = ModelPlugin(
+    model_factory=build_model,
+    parameter_space_cls=MyParameterSpace,   # a BaseParameterSpace subclass
+    problem_cls=MyProblem,                  # a BaseProblem subclass
+)
+```
+
+`"module"` can be a single file (`"plugin.py"`), a package directory with an
+`__init__.py` (`"my_model"`, for a model spread over several files with
+relative imports), or an importable module (`"package.module"`); append
+`":NAME"` if the plugin is not called `PLUGIN`. Paths are relative to the
+identification config or absolute. When `module` is set, `model_type` is not
+needed. The model's name (`model.name`: the class attribute `NAME`, else the
+class name) is written to `results.json` as `setup.model_name` for every run.
+
+The local file or package directory is copied into the results directory,
+`results.json` records the copy (and the original path under
+`setup.model_source`), and the run can be reloaded from the results folder
+alone:
+
+```python
+from rctoolbox.pipeline.run import load_run
+
+run = load_run("results")                 # registry or local model
+run.model                                 # best candidate, ready to predict
+run = load_run("results", best_from_cluster=True)
+optimizer = run.load_optimizer()          # optimizer.pkl (--save-optimizer)
+```
+
+A single-file module may import helpers that sit next to it, but only the file
+itself is copied; use a package directory when the model has several files.
+
 #### Objective function
 
-`optimization_config["objective_function"]` selects what the GA minimises:
+`optimization_config["objective_function"]` selects what the GA minimizes:
 
 - a **metric name** (`"MAE"`, `"MSE"`, `"RMSE"`, `"CV(RMSE)"`, `"RE"`, `"NMBE"`)
   uses the built-in objective, the metric's mean across windows plus
@@ -235,11 +335,11 @@ src/rctoolbox/
 ├── models/rc/
 │   ├── five_r1c_eniso13790/   # 5R1C EN ISO 13790 (Numba-jitted)
 │   ├── six_r3c_eniso13790/    # extended 6R3C EN ISO 13790
-│   ├── two_r2c/               # generic 2R2C topology
-│   └── three_r3c/             # generic 3R3C topology
+│   ├── TwoR2C_TiTe/               # generic 2R2C topology
+│   └── ThreeR3C_TiThTe/             # generic 3R3C topology
 ├── data/                       # DataLoader + time-window generators
 ├── identification/             # GAOptimizer, problem classes, selection
-├── pipeline/                   # run_pipeline orchestrator + model registry
+├── pipeline/                   # run_pipeline, model registry, local plugins, load_run
 ├── evaluation/                 # forecast metrics + plotting
 ├── utils/                      # config loader, logging, seed, latex map
 ├── cli/                        # rct-train entry point
@@ -255,7 +355,7 @@ src/rctoolbox/
 
 Default building configurations live at
 [`src/rctoolbox/configs/buildings/`](src/rctoolbox/configs/buildings/).
-Sanitised hourly datasets ship under
+Sanitized hourly datasets ship under
 [`examples/data/`](examples/data/) as `AIBF_data.pkl`, `VUBC_data.pkl`.
 
 > **Note on privacy.** For the bundled datasets, `Phi_sol` (solar
